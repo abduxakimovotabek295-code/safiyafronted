@@ -11,7 +11,7 @@ function NavbarLinks() {
   const [passwordInput, setPasswordInput] = useState("");
   const [categories, setCategories] = useState([]);
 
-  // Kategoriya tahrirlash uchun mavjud statelar (saqlab qolindi)
+  // Kategoriya tahrirlash uchun statelar (saqlab qolindi)
   const [editingCat, setEditingCat] = useState(null);
   const [newCatName, setNewCatName] = useState("");
 
@@ -35,7 +35,6 @@ function NavbarLinks() {
     fetchCategories();
   }, []);
 
-  // Mavjud o'chirish funksiyasi
   const handleDeleteCategory = async (catName) => {
     if (!confirm(`"${catName}" o'chirilsinmi? Barcha mahsulotlar ham o'chadi!`))
       return;
@@ -55,7 +54,6 @@ function NavbarLinks() {
     }
   };
 
-  // Mavjud yangilash funksiyasi
   const handleUpdateCategory = async (oldName) => {
     if (!newCatName.trim()) return alert("Nom yozing");
     const token = localStorage.getItem("adminToken");
@@ -99,13 +97,14 @@ function NavbarLinks() {
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="flex bg-gray-100 p-1 rounded-2xl gap-1 overflow-x-auto max-w-[250px] sm:max-w-none no-scrollbar">
+    <div className="flex flex-col md:flex-row items-center gap-4 w-full">
+      {/* KATEGORIYALAR: Endi telefonda ham ko'rinadi va suriladi */}
+      <div className="flex bg-gray-100 p-1 rounded-2xl gap-1 overflow-x-auto w-full md:w-auto no-scrollbar scroll-smooth">
         {categories.map((cat) => (
-          <div key={cat} className="relative flex items-center">
+          <div key={cat} className="relative flex items-center flex-shrink-0">
             <Link
               href={`/?category=${cat}`}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
                 currentCategory === cat
                   ? "bg-white text-blue-600 shadow-sm"
                   : "text-gray-500 hover:text-blue-400"
@@ -116,7 +115,6 @@ function NavbarLinks() {
 
             {isAdmin && (
               <div className="relative flex items-center pr-1">
-                {/* 3 TALIK NUQTA: BOSILGANDA KATEGORIYATAHRIRLASH SAHIFASIGA O'TADI */}
                 <Link
                   href={`/kategoriyatahrirlash?name=${cat}`}
                   className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-blue-600 transition-colors"
@@ -129,35 +127,38 @@ function NavbarLinks() {
         ))}
       </div>
 
-      {isAdmin && (
-        <div className="flex gap-2">
-          <Link
-            href="/addnav"
-            className="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] sm:text-xs hover:bg-blue-700 transition-colors shadow-md"
-          >
-            + Kategoriya
-          </Link>
-          <Link
-            href="/addproduct"
-            className="bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] sm:text-xs hover:bg-green-700 transition-colors shadow-md"
-          >
-            + Mahsulot
-          </Link>
-        </div>
-      )}
+      {/* ADMIN TUGMALARI VA QULF */}
+      <div className="flex items-center gap-2 ml-auto">
+        {isAdmin && (
+          <div className="flex gap-2">
+            <Link
+              href="/addnav"
+              className="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] sm:text-xs hover:bg-blue-700 transition-colors shadow-md whitespace-nowrap"
+            >
+              + Kategoriya
+            </Link>
+            <Link
+              href="/addproduct"
+              className="bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] sm:text-xs hover:bg-green-700 transition-colors shadow-md whitespace-nowrap"
+            >
+              + Mahsulot
+            </Link>
+          </div>
+        )}
 
-      <button
-        onClick={isAdmin ? handleLogout : () => setIsModalOpen(true)}
-        className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl border transition-all ${
-          isAdmin
-            ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
-            : "bg-gray-100 border-gray-200"
-        }`}
-      >
-        {isAdmin ? "🔓" : "🔒"}
-      </button>
+        <button
+          onClick={isAdmin ? handleLogout : () => setIsModalOpen(true)}
+          className={`w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center rounded-xl border transition-all ${
+            isAdmin
+              ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
+              : "bg-gray-100 border-gray-200"
+          }`}
+        >
+          {isAdmin ? "🔓" : "🔒"}
+        </button>
+      </div>
 
-      {/* TAHRIRLASH MODALI (SAQLAB QOLINDI) */}
+      {/* TAHRIRLASH MODALI */}
       {editingCat && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
           <div className="bg-white p-6 rounded-[32px] shadow-2xl w-full max-w-sm animate-in zoom-in duration-300">
@@ -192,7 +193,7 @@ function NavbarLinks() {
         </div>
       )}
 
-      {/* LOGIN MODAL (SAQLAB QOLINDI) */}
+      {/* LOGIN MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
           <div className="bg-white p-8 rounded-[35px] shadow-2xl w-full max-w-xs text-center">
@@ -233,7 +234,7 @@ function NavbarLinks() {
 
 export default function Navbar() {
   return (
-    <nav className="sticky top-0 z-[1000] bg-white/90 backdrop-blur-md border-b px-4 sm:px-8 py-4 flex justify-between items-center shadow-sm">
+    <nav className="sticky top-0 z-[1000] bg-white/90 backdrop-blur-md border-b px-4 sm:px-8 py-4 flex flex-wrap justify-between items-center shadow-sm">
       <Link
         href="/"
         className="text-xl sm:text-2xl font-black text-blue-600 italic tracking-tighter"
