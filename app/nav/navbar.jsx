@@ -23,7 +23,7 @@ function NavbarLinks() {
       window.location.reload();
     } else {
       const pass = prompt("Admin parolini kiriting:");
-      if (pass === "1234") {
+      if (pass === "safiyauz_2026") {
         localStorage.setItem("adminToken", "safiya_admin_2026_token");
         alert("Admin rejimi yoqildi!");
         window.location.reload();
