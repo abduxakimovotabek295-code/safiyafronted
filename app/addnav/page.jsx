@@ -3,7 +3,8 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../nav/navbar";
 
-function AddNavContent() {
+// 1. Asosiy forma qismini alohida komponentga olamiz
+function AddNavForm() {
   const router = useRouter();
   const [categories, setCategories] = useState([]);
   const [activeTab, setActiveTab] = useState("product");
@@ -25,6 +26,7 @@ function AddNavContent() {
     const fetchCats = async () => {
       try {
         const res = await fetch(`${API_URL}/categories`);
+        if (!res.ok) throw new Error("Serverda xatolik");
         const data = await res.json();
         if (Array.isArray(data)) {
           setCategories(data);
@@ -51,9 +53,11 @@ function AddNavContent() {
       if (res.ok) {
         alert("Mahsulot muvaffaqiyatli qo'shildi!");
         router.push(`/?category=${product.category}`);
+      } else {
+        alert("Xatolik yuz berdi. Ma'lumotlarni tekshiring.");
       }
     } catch (err) {
-      alert("Mahsulot qo'shishda xatolik yuz berdi.");
+      alert("Serverga ulanishda xatolik.");
     } finally {
       setLoading(false);
     }
@@ -71,6 +75,7 @@ function AddNavContent() {
       });
       if (res.ok) {
         alert("Yangi kategoriya qo'shildi!");
+        setNewCat("");
         window.location.reload();
       }
     } catch (err) {
@@ -82,17 +87,28 @@ function AddNavContent() {
 
   return (
     <div className="bg-slate-50 min-h-screen pb-10">
+      <Navbar />
       <div className="max-w-md mx-auto mt-10 p-8 bg-white rounded-3xl shadow-xl border border-gray-100">
         <div className="flex gap-4 mb-8 border-b pb-4">
           <button
+            type="button"
             onClick={() => setActiveTab("product")}
-            className={`flex-1 py-2 font-bold transition-all ${activeTab === "product" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-400"}`}
+            className={`flex-1 py-2 font-bold transition-all ${
+              activeTab === "product"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-400"
+            }`}
           >
             Mahsulot
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("category")}
-            className={`flex-1 py-2 font-bold transition-all ${activeTab === "category" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-400"}`}
+            className={`flex-1 py-2 font-bold transition-all ${
+              activeTab === "category"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-400"
+            }`}
           >
             Kategoriya
           </button>
@@ -110,16 +126,21 @@ function AddNavContent() {
                 setProduct({ ...product, category: e.target.value })
               }
             >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
+              {categories.length > 0 ? (
+                categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))
+              ) : (
+                <option disabled>Kategoriyalar yo'q</option>
+              )}
             </select>
 
             <input
               className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               placeholder="Mahsulot nomi"
+              value={product.name}
               onChange={(e) => setProduct({ ...product, name: e.target.value })}
               required
             />
@@ -127,6 +148,7 @@ function AddNavContent() {
               className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               placeholder="Narxi (masalan: 25000)"
               type="number"
+              value={product.price}
               onChange={(e) =>
                 setProduct({ ...product, price: e.target.value })
               }
@@ -135,12 +157,14 @@ function AddNavContent() {
             <input
               className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               placeholder="Rasm linki (URL)"
+              value={product.img}
               onChange={(e) => setProduct({ ...product, img: e.target.value })}
               required
             />
             <textarea
               className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
               placeholder="Mahsulot haqida..."
+              value={product.description}
               onChange={(e) =>
                 setProduct({ ...product, description: e.target.value })
               }
@@ -149,7 +173,7 @@ function AddNavContent() {
 
             <button
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all disabled:bg-gray-300"
+              className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all disabled:bg-gray-300 shadow-lg shadow-blue-100"
             >
               {loading ? "Saqlanmoqda..." : "Saqlash"}
             </button>
@@ -165,7 +189,7 @@ function AddNavContent() {
             />
             <button
               disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition-all disabled:bg-gray-300"
+              className="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition-all disabled:bg-gray-300 shadow-lg shadow-green-100"
             >
               {loading ? "Qo'shilmoqda..." : "Kategoriya qo'shish"}
             </button>
@@ -176,13 +200,19 @@ function AddNavContent() {
   );
 }
 
-// Vercel build xatosini oldini olish uchun Suspense ishlatamiz
+// 2. Eksport qilinadigan asosiy komponent
 export default function AddNav() {
   return (
+    // Har qanday "prerendering" xatosini oldini olish uchun Suspense qobig'i
     <Suspense
-      fallback={<div className="text-center p-20">Sahifa yuklanmoqda...</div>}
+      fallback={
+        <div className="flex justify-center items-center min-h-screen bg-white">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+          <p className="ml-3 font-bold text-gray-500">Yuklanmoqda...</p>
+        </div>
+      }
     >
-      <AddNavContent />
+      <AddNavForm />
     </Suspense>
   );
 }
