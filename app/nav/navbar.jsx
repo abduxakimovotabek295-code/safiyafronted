@@ -1,81 +1,127 @@
 "use client";
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
-  const [categories, setCategories] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const currentCategory = searchParams.get("category") || "sweets";
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // Mobile menyu uchun holat
 
   useEffect(() => {
-    // localhost:5000 o'rniga Render'dagi yangi link qo'yildi
-    fetch("https://safiyabekend.onrender.com/categories")
-      .then((res) => res.json())
-      .then((data) => setCategories(data))
-      .catch((err) => console.log("Kategoriyalar yuklanmadi"));
-
     const token = localStorage.getItem("adminToken");
-    if (token === "safiya_admin_2026_token") {
-      setIsAdmin(true);
-    }
+    setIsAdmin(token === "safiya_admin_2026_token");
   }, []);
+
+  const categories = [
+    { id: "sweets", name: "Shirinliklar", emoji: "🍰" },
+    { id: "drinks", name: "Ichimliklar", emoji: "🥤" },
+    { id: "fastfood", name: "Fast Food", emoji: "🍔" },
+  ];
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
-    setIsAdmin(false);
-    router.push("/");
     window.location.reload();
   };
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md shadow-sm py-4 sticky top-0 z-50 border-b border-gray-100">
-      <div className="container mx-auto flex justify-between items-center px-4">
-        <Link
-          href="/"
-          className="text-2xl font-black text-blue-600 tracking-tighter"
-        >
-          SAFIYA<span className="text-gray-400">.clone</span>
-        </Link>
+    <nav className="bg-white shadow-md sticky top-0 z-50">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="text-2xl font-black text-blue-600 flex items-center gap-2"
+          >
+            <span className="bg-blue-600 text-white p-1 rounded-lg text-sm">
+              SAFIYA
+            </span>
+            <span className="hidden sm:inline">Clone</span>
+          </Link>
 
-        <div className="hidden md:flex gap-8 items-center">
-          {categories.map((cat) => (
-            <Link
-              key={cat}
-              href={`/?category=${cat}`}
-              className="text-gray-600 hover:text-blue-600 font-medium transition-all"
+          {/* Desktop Menyu */}
+          <div className="hidden md:flex items-center gap-6">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/?category=${cat.id}`}
+                className={`text-sm font-bold transition-colors ${
+                  currentCategory === cat.id
+                    ? "text-blue-600"
+                    : "text-gray-500 hover:text-blue-500"
+                }`}
+              >
+                {cat.emoji} {cat.name}
+              </Link>
+            ))}
+          </div>
+
+          {/* Admin tugmalari */}
+          <div className="flex items-center gap-3">
+            {isAdmin ? (
+              <>
+                <Link
+                  href="/addnav"
+                  className="hidden sm:block bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-bold"
+                >
+                  + Qo'shish
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-red-500 text-xs font-bold border border-red-200 px-3 py-2 rounded-xl"
+                >
+                  Chiqish
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="text-gray-400 hover:text-blue-600 transition-colors"
+              >
+                🔒 Admin
+              </Link>
+            )}
+
+            {/* Mobile Menyu Tugmasi (Gamburger) */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden p-2 text-gray-600 focus:outline-none"
             >
-              {cat}
-            </Link>
-          ))}
+              {isOpen ? "✖️" : "🍔"}
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          {isAdmin ? (
-            <>
+        {/* Mobile Menyu (Ochildi-yopildi) */}
+        {isOpen && (
+          <div className="md:hidden pb-4 space-y-2 border-t pt-2">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/?category=${cat.id}`}
+                onClick={() => setIsOpen(false)}
+                className={`block p-3 rounded-xl font-bold ${
+                  currentCategory === cat.id
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-500"
+                }`}
+              >
+                {cat.emoji} {cat.name}
+              </Link>
+            ))}
+            {isAdmin && (
               <Link
                 href="/addnav"
-                className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all"
+                onClick={() => setIsOpen(false)}
+                className="block p-3 bg-green-500 text-white rounded-xl font-bold text-center"
               >
-                + Qo'shish
+                + Yangi Mahsulot Qo'shish
               </Link>
-
-              <button
-                onClick={handleLogout}
-                className="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-all border border-red-100"
-              >
-                Chiqish 🚪
-              </button>
-            </>
-          ) : (
-            <Link
-              href="/login"
-              className="text-gray-300 hover:text-blue-500 transition-all text-xl"
-            >
-              🔒
-            </Link>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </nav>
   );
