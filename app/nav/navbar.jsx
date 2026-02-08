@@ -97,14 +97,14 @@ function NavbarLinks() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-4 w-full">
-      {/* KATEGORIYALAR: Endi telefonda ham ko'rinadi va suriladi */}
-      <div className="flex bg-gray-100 p-1 rounded-2xl gap-1 overflow-x-auto w-full md:w-auto no-scrollbar scroll-smooth">
+    <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
+      {/* KATEGORIYALAR RO'YXATI - Mobil va Desktop uchun optimallashgan */}
+      <div className="flex bg-gray-100 p-1 rounded-2xl gap-1 overflow-x-auto w-full max-w-[92vw] md:max-w-none no-scrollbar scroll-smooth">
         {categories.map((cat) => (
           <div key={cat} className="relative flex items-center flex-shrink-0">
             <Link
               href={`/?category=${cat}`}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-[11px] md:text-sm font-bold transition-all whitespace-nowrap ${
                 currentCategory === cat
                   ? "bg-white text-blue-600 shadow-sm"
                   : "text-gray-500 hover:text-blue-400"
@@ -117,7 +117,7 @@ function NavbarLinks() {
               <div className="relative flex items-center pr-1">
                 <Link
                   href={`/kategoriyatahrirlash?name=${cat}`}
-                  className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-blue-600 transition-colors"
+                  className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-blue-600 transition-colors"
                 >
                   ⋮
                 </Link>
@@ -128,7 +128,7 @@ function NavbarLinks() {
       </div>
 
       {/* ADMIN TUGMALARI VA QULF */}
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-2 ml-auto md:ml-0 self-end md:self-center">
         {isAdmin && (
           <div className="flex gap-2">
             <Link
@@ -158,9 +158,9 @@ function NavbarLinks() {
         </button>
       </div>
 
-      {/* TAHRIRLASH MODALI */}
+      {/* TAHRIRLASH MODALI (SAQLAB QOLINDI) */}
       {editingCat && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
           <div className="bg-white p-6 rounded-[32px] shadow-2xl w-full max-w-sm animate-in zoom-in duration-300">
             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 mx-auto text-xl">
               ✏️
@@ -193,9 +193,9 @@ function NavbarLinks() {
         </div>
       )}
 
-      {/* LOGIN MODAL */}
+      {/* LOGIN MODAL (SAQLAB QOLINDI) */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[2000]">
           <div className="bg-white p-8 rounded-[35px] shadow-2xl w-full max-w-xs text-center">
             <h3 className="text-xl font-bold mb-4 text-gray-800">
               Admin Kirish
@@ -234,10 +234,10 @@ function NavbarLinks() {
 
 export default function Navbar() {
   return (
-    <nav className="sticky top-0 z-[1000] bg-white/90 backdrop-blur-md border-b px-4 sm:px-8 py-4 flex flex-wrap justify-between items-center shadow-sm">
+    <nav className="sticky top-0 z-[1000] bg-white/90 backdrop-blur-md border-b px-4 sm:px-8 py-3 md:py-4 flex flex-col md:flex-row justify-between items-center shadow-sm gap-2 md:gap-0">
       <Link
         href="/"
-        className="text-xl sm:text-2xl font-black text-blue-600 italic tracking-tighter"
+        className="text-xl sm:text-2xl font-black text-blue-600 italic tracking-tighter self-start md:self-auto"
       >
         SAFIYA
       </Link>
