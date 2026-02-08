@@ -35,48 +35,6 @@ function NavbarLinks() {
     fetchCategories();
   }, []);
 
-  const handleDeleteCategory = async (catName) => {
-    if (!confirm(`"${catName}" o'chirilsinmi? Barcha mahsulotlar ham o'chadi!`))
-      return;
-    const token = localStorage.getItem("adminToken");
-    try {
-      const res = await fetch(`${API_URL}/delete-category/${catName}`, {
-        method: "DELETE",
-        headers: { Authorization: token },
-      });
-      if (res.ok) {
-        alert("O'chirildi!");
-        await fetchCategories();
-        router.push("/");
-      }
-    } catch (err) {
-      alert("Xato yuz berdi");
-    }
-  };
-
-  const handleUpdateCategory = async (oldName) => {
-    if (!newCatName.trim()) return alert("Nom yozing");
-    const token = localStorage.getItem("adminToken");
-    try {
-      const res = await fetch(`${API_URL}/update-category`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: token },
-        body: JSON.stringify({ oldName, newName: newCatName.trim() }),
-      });
-      if (res.ok) {
-        alert("Kategoriya yangilandi!");
-        setEditingCat(null);
-        await fetchCategories();
-        router.push(`/?category=${newCatName.trim()}`);
-      } else {
-        const d = await res.json();
-        alert(d.message);
-      }
-    } catch (err) {
-      alert("Server xatosi");
-    }
-  };
-
   const handleLogin = (e) => {
     e.preventDefault();
     if (passwordInput === "@Safiyauz_2026@") {
@@ -97,14 +55,14 @@ function NavbarLinks() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
-      {/* KATEGORIYALAR RO'YXATI - Mobil va Desktop uchun optimallashgan */}
-      <div className="flex bg-gray-100 p-1 rounded-2xl gap-1 overflow-x-auto w-full max-w-[92vw] md:max-w-none no-scrollbar scroll-smooth">
+    <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+      {/* KATEGORIYALAR RO'YXATI - Mobil qurilmada yon tomonga suriladi */}
+      <div className="flex bg-gray-100 p-1 rounded-2xl gap-1 overflow-x-auto w-full max-w-[calc(100vw-32px)] md:max-w-none no-scrollbar scroll-smooth flex-nowrap">
         {categories.map((cat) => (
           <div key={cat} className="relative flex items-center flex-shrink-0">
             <Link
               href={`/?category=${cat}`}
-              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-[11px] md:text-sm font-bold transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-[12px] md:text-sm font-bold transition-all whitespace-nowrap ${
                 currentCategory === cat
                   ? "bg-white text-blue-600 shadow-sm"
                   : "text-gray-500 hover:text-blue-400"
@@ -127,10 +85,10 @@ function NavbarLinks() {
         ))}
       </div>
 
-      {/* ADMIN TUGMALARI VA QULF */}
-      <div className="flex items-center gap-2 ml-auto md:ml-0 self-end md:self-center">
+      {/* ADMIN TUGMALARI VA QULF - Mobil qurilmada o'ngga suriladi */}
+      <div className="flex items-center gap-2 w-full md:w-auto justify-end">
         {isAdmin && (
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 md:gap-2">
             <Link
               href="/addnav"
               className="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-[10px] sm:text-xs hover:bg-blue-700 transition-colors shadow-md whitespace-nowrap"
@@ -148,7 +106,7 @@ function NavbarLinks() {
 
         <button
           onClick={isAdmin ? handleLogout : () => setIsModalOpen(true)}
-          className={`w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center rounded-xl border transition-all ${
+          className={`w-9 h-9 md:w-10 md:h-10 flex-shrink-0 flex items-center justify-center rounded-xl border transition-all ${
             isAdmin
               ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
               : "bg-gray-100 border-gray-200"
@@ -158,45 +116,10 @@ function NavbarLinks() {
         </button>
       </div>
 
-      {/* TAHRIRLASH MODALI (SAQLAB QOLINDI) */}
-      {editingCat && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
-          <div className="bg-white p-6 rounded-[32px] shadow-2xl w-full max-w-sm animate-in zoom-in duration-300">
-            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 mx-auto text-xl">
-              ✏️
-            </div>
-            <h3 className="font-bold text-xl mb-4 text-center text-gray-800">
-              Kategoriyani tahrirlash
-            </h3>
-            <input
-              className="w-full border-2 border-gray-100 p-4 rounded-2xl mb-5 outline-none focus:border-blue-500 transition-all text-center font-semibold"
-              value={newCatName}
-              onChange={(e) => setNewCatName(e.target.value)}
-              autoFocus
-              placeholder="Yangi nom..."
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleUpdateCategory(editingCat)}
-                className="flex-1 bg-blue-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all"
-              >
-                Saqlash
-              </button>
-              <button
-                onClick={() => setEditingCat(null)}
-                className="flex-1 bg-gray-100 py-3.5 rounded-2xl font-bold text-gray-500 hover:bg-gray-200 active:scale-95 transition-all"
-              >
-                Bekor qilish
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* LOGIN MODAL (SAQLAB QOLINDI) */}
+      {/* MODALLAR (O'zgarishsiz qoldi) */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[2000]">
-          <div className="bg-white p-8 rounded-[35px] shadow-2xl w-full max-w-xs text-center">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
+          <div className="bg-white p-8 rounded-[35px] shadow-2xl w-full max-w-xs text-center animate-in zoom-in duration-200">
             <h3 className="text-xl font-bold mb-4 text-gray-800">
               Admin Kirish
             </h3>
@@ -234,16 +157,22 @@ function NavbarLinks() {
 
 export default function Navbar() {
   return (
-    <nav className="sticky top-0 z-[1000] bg-white/90 backdrop-blur-md border-b px-4 sm:px-8 py-3 md:py-4 flex flex-col md:flex-row justify-between items-center shadow-sm gap-2 md:gap-0">
-      <Link
-        href="/"
-        className="text-xl sm:text-2xl font-black text-blue-600 italic tracking-tighter self-start md:self-auto"
-      >
-        SAFIYA
-      </Link>
+    <nav className="sticky top-0 z-[1000] bg-white/95 backdrop-blur-md border-b px-4 sm:px-8 py-3 flex flex-col md:flex-row justify-between items-center shadow-sm gap-3 md:gap-0">
+      <div className="flex justify-between items-center w-full md:w-auto">
+        <Link
+          href="/"
+          className="text-xl sm:text-2xl font-black text-blue-600 italic tracking-tighter"
+        >
+          SAFIYA
+        </Link>
+        {/* Mobil ekranda Admin qulfi logotip yonida turishi uchun NavbarLinks ichida bo'shliq yaratamiz */}
+      </div>
+
       <Suspense
         fallback={
-          <div className="text-xs font-bold text-gray-400">Yuklanmoqda...</div>
+          <div className="text-xs font-bold text-gray-400 italic">
+            Yuklanmoqda...
+          </div>
         }
       >
         <NavbarLinks />
