@@ -1,144 +1,72 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../nav/navbar";
 
-function AddNavContent() {
-  const router = useRouter();
-  const [categories, setCategories] = useState([]);
-  const [activeTab, setActiveTab] = useState("product");
+export default function AddCategoryPage() {
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [product, setProduct] = useState({
-    name: "",
-    img: "",
-    price: "",
-    description: "",
-    category: "",
-  });
-  const [newCat, setNewCat] = useState("");
+  const router = useRouter();
+  const API_URL = "http://localhost:5000";
 
-  const API_URL = "https://safiyabekend.onrender.com";
-
-  useEffect(() => {
-    fetch(`${API_URL}/categories`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setCategories(data);
-          if (data.length > 0)
-            setProduct((prev) => ({ ...prev, category: data[0] }));
-        }
-      })
-      .catch((err) => console.log(err));
-  }, []);
-
-  const addProduct = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("adminToken");
+
+    if (!name.trim()) return alert("Nomini yozing!");
+
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/add-product`, {
+      const res = await fetch(`${API_URL}/add-category`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(product),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({ name: name.trim() }),
       });
+
       if (res.ok) {
-        alert("Qo'shildi!");
+        alert("Kategoriya muvaffaqiyatli qo'shildi!");
         router.push("/");
+        router.refresh();
+      } else {
+        const data = await res.json();
+        alert(`Xato: ${data.message || "Qo'shib bo'lmadi"}`);
       }
+    } catch (err) {
+      alert("Server bilan aloqa yo'q!");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen">
+    <div className="bg-gray-50 min-h-screen">
       <Navbar />
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-3xl shadow-xl">
-        <div className="flex gap-4 mb-6 border-b pb-2">
+      <div className="max-w-md mx-auto mt-12 p-8 bg-white rounded-[30px] shadow-xl border">
+        <h2 className="text-2xl font-bold text-center mb-6 text-blue-600">
+          Yangi Kategoriya
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all"
+            placeholder="Kategoriya nomi (masalan: Tortlar)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
           <button
-            onClick={() => setActiveTab("product")}
-            className={`flex-1 py-2 font-bold ${activeTab === "product" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-400"}`}
+            disabled={loading}
+            className={`w-full py-4 rounded-2xl font-bold text-white shadow-lg ${
+              loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Mahsulot
+            {loading ? "Saqlanmoqda..." : "Kategoriyani Saqlash"}
           </button>
-          <button
-            onClick={() => setActiveTab("category")}
-            className={`flex-1 py-2 font-bold ${activeTab === "category" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-400"}`}
-          >
-            Kategoriya
-          </button>
-        </div>
-
-        {activeTab === "product" ? (
-          <form onSubmit={addProduct} className="space-y-4">
-            <select
-              className="w-full border p-3 rounded-xl bg-gray-50"
-              value={product.category}
-              onChange={(e) =>
-                setProduct({ ...product, category: e.target.value })
-              }
-            >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-            <input
-              className="w-full border p-3 rounded-xl"
-              placeholder="Nomi"
-              onChange={(e) => setProduct({ ...product, name: e.target.value })}
-              required
-            />
-            <input
-              className="w-full border p-3 rounded-xl"
-              type="number"
-              placeholder="Narxi"
-              onChange={(e) =>
-                setProduct({ ...product, price: e.target.value })
-              }
-              required
-            />
-            <input
-              className="w-full border p-3 rounded-xl"
-              placeholder="Rasm linki"
-              onChange={(e) => setProduct({ ...product, img: e.target.value })}
-              required
-            />
-            <textarea
-              className="w-full border p-3 rounded-xl"
-              placeholder="Tavsif"
-              onChange={(e) =>
-                setProduct({ ...product, description: e.target.value })
-              }
-            ></textarea>
-            <button
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold"
-            >
-              {loading ? "Saqlanmoqda..." : "Saqlash"}
-            </button>
-          </form>
-        ) : (
-          <p className="text-center text-gray-400 py-10">
-            Kategoriya qo'shish funksiyasi tez orada...
-          </p>
-        )}
+        </form>
       </div>
     </div>
-  );
-}
-
-export default function AddNavPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center font-bold">
-          Yuklanmoqda...
-        </div>
-      }
-    >
-      <AddNavContent />
-    </Suspense>
   );
 }
