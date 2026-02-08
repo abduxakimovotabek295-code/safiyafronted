@@ -27,7 +27,6 @@ function HomeContent() {
   };
 
   useEffect(() => {
-    // Adminlik holatini tekshirish
     const token = localStorage.getItem("adminToken");
     setIsAdmin(token === "safiya_admin_2026_token");
     getApi();
@@ -42,9 +41,9 @@ function HomeContent() {
         headers: { Authorization: token },
       });
       if (res.ok) getApi();
-      else alert("Xatolik: Admin ruxsati kerak!");
+      else alert("Ruxsat yo'q!");
     } catch (err) {
-      alert("Xatolik yuz berdi");
+      alert("Xatolik!");
     }
   };
 
@@ -91,7 +90,7 @@ function HomeContent() {
                 key={item.id}
                 className="group bg-white rounded-[45px] p-5 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 relative"
               >
-                {/* ADMIN TUGMALARI: Faqat qulf to'g'ri ochilsa chiqadi */}
+                {/* ADMIN TUGMALARI: Faqat admin bo'lsa chiqadi */}
                 {isAdmin && (
                   <div className="absolute top-6 right-6 flex gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
@@ -118,7 +117,7 @@ function HomeContent() {
                 </div>
 
                 <div className="px-2">
-                  <h2 className="text-xl font-bold text-gray-800 mb-1">
+                  <h2 className="text-xl font-bold text-gray-800 mb-1 truncate">
                     {item.name}
                   </h2>
                   <p className="text-blue-600 font-black text-lg mb-2">
@@ -142,9 +141,9 @@ function HomeContent() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <form
             onSubmit={handleUpdate}
-            className="bg-white p-10 rounded-[45px] w-full max-w-md space-y-4 shadow-2xl"
+            className="bg-white p-10 rounded-[45px] w-full max-w-md space-y-4 shadow-2xl animate-in zoom-in duration-200"
           >
-            <h2 className="text-2xl font-black mb-4">Mahsulotni tahrirlash</h2>
+            <h2 className="text-2xl font-black mb-4">Tahrirlash</h2>
             <input
               className="w-full border p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500"
               value={editingItem.name}

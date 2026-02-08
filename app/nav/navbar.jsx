@@ -1,27 +1,31 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 function NavbarLinks() {
   const searchParams = useSearchParams();
+  const [isAdmin, setIsAdmin] = useState(false);
   const currentCategory = searchParams.get("category") || "sweets";
 
-  // Admin rejimini yoqish funksiyasi
+  useEffect(() => {
+    // Admin holatini tekshirish
+    const token = localStorage.getItem("adminToken");
+    setIsAdmin(token === "safiya_admin_2026_token");
+  }, []);
+
   const toggleAdminMode = () => {
     const token = localStorage.getItem("adminToken");
 
     if (token === "safiya_admin_2026_token") {
-      // Agar admin yoqilgan bo'lsa, uni o'chirish (Logout mantiqi)
       localStorage.removeItem("adminToken");
       alert("Admin rejimi o'chirildi.");
       window.location.reload();
     } else {
-      // Parol so'rash
       const pass = prompt("Admin parolini kiriting:");
       if (pass === "1234") {
         localStorage.setItem("adminToken", "safiya_admin_2026_token");
-        alert("Admin rejimi yoqildi! Endi tahrirlashingiz mumkin.");
+        alert("Admin rejimi yoqildi!");
         window.location.reload();
       } else {
         alert("Parol noto'g'ri!");
@@ -31,7 +35,6 @@ function NavbarLinks() {
 
   return (
     <div className="flex items-center gap-4">
-      {/* Kategoriyalar */}
       <div className="flex bg-gray-100 p-1 rounded-2xl gap-1">
         <Link
           href="/?category=sweets"
@@ -55,21 +58,26 @@ function NavbarLinks() {
         </Link>
       </div>
 
-      {/* Qo'shish tugmasi (Doim ko'rinadi) */}
-      <Link
-        href="/addnav"
-        className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
-      >
-        Qo'shish
-      </Link>
+      {/* QO'SHISH TUGMASI: Faqat admin bo'lsa ko'rinadi */}
+      {isAdmin && (
+        <Link
+          href="/addnav"
+          className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 animate-in fade-in zoom-in duration-300"
+        >
+          Qo'shish
+        </Link>
+      )}
 
-      {/* Qulf tugmasi (Adminlikni yoqish uchun) */}
       <button
         onClick={toggleAdminMode}
-        className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-xl hover:bg-gray-200 transition-all border border-gray-200"
-        title="Admin rejimini yoqish/o'chirish"
+        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all border ${
+          isAdmin
+            ? "bg-blue-50 border-blue-200 text-blue-600"
+            : "bg-gray-100 border-gray-200"
+        }`}
+        title={isAdmin ? "Chiqish" : "Admin kirish"}
       >
-        🔒
+        {isAdmin ? "🔓" : "🔒"}
       </button>
     </div>
   );
