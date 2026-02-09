@@ -11,11 +11,12 @@ function NavbarLinks() {
   const [passwordInput, setPasswordInput] = useState("");
   const [categories, setCategories] = useState([]);
 
-  // Kategoriya tahrirlash uchun statelar (saqlab qolindi)
+  // Kategoriya tahrirlash uchun statelar
   const [editingCat, setEditingCat] = useState(null);
   const [newCatName, setNewCatName] = useState("");
 
-  const currentCategory = searchParams.get("category");
+  // Standart holatda "foods"ni tanlangan deb hisoblaymiz
+  const currentCategory = searchParams.get("category") || "foods";
   const API_URL = "http://localhost:5000";
 
   const fetchCategories = async () => {
@@ -56,7 +57,7 @@ function NavbarLinks() {
 
   return (
     <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-      {/* KATEGORIYALAR RO'YXATI - Mobil qurilmada yon tomonga suriladi */}
+      {/* KATEGORIYALAR RO'YXATI */}
       <div className="flex bg-gray-100 p-1 rounded-2xl gap-1 overflow-x-auto w-full max-w-[calc(100vw-32px)] md:max-w-none no-scrollbar scroll-smooth flex-nowrap">
         {categories.map((cat) => (
           <div key={cat} className="relative flex items-center flex-shrink-0">
@@ -85,7 +86,7 @@ function NavbarLinks() {
         ))}
       </div>
 
-      {/* ADMIN TUGMALARI VA QULF - Mobil qurilmada o'ngga suriladi */}
+      {/* ADMIN TUGMALARI VA QULF */}
       <div className="flex items-center gap-2 w-full md:w-auto justify-end">
         {isAdmin && (
           <div className="flex gap-1.5 md:gap-2">
@@ -116,7 +117,7 @@ function NavbarLinks() {
         </button>
       </div>
 
-      {/* MODALLAR (O'zgarishsiz qoldi) */}
+      {/* LOGIN MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
           <div className="bg-white p-8 rounded-[35px] shadow-2xl w-full max-w-xs text-center animate-in zoom-in duration-200">
@@ -165,7 +166,6 @@ export default function Navbar() {
         >
           SAFIYA
         </Link>
-        {/* Mobil ekranda Admin qulfi logotip yonida turishi uchun NavbarLinks ichida bo'shliq yaratamiz */}
       </div>
 
       <Suspense

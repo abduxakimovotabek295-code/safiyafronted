@@ -11,20 +11,13 @@ function HomeContent() {
 
   const searchParams = useSearchParams();
 
-  // URL'dan kategoriya olish, agar bo'lmasa bo'sh qoldiramiz
-  const category = searchParams.get("category");
+  // URL'dan kategoriya olish, agar bo'lmasa standart "foods" ni yuklash
+  const category = searchParams.get("category") || "foods";
 
-  // DIQQAT: Serveringiz localhostda bo'lsa shuni ishlating!
   const API_URL = "http://localhost:5000";
 
   const getApi = async () => {
-    // Agar kategoriya tanlanmagan bo'lsa, so'rov yubormaymiz
-    if (!category) {
-      setData([]);
-      setLoading(false);
-      return;
-    }
-
+    // Endi "if (!category)" sharti kerak emas, chunki u doim kamida "foods" bo'ladi
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/products/${category}`);
@@ -46,7 +39,7 @@ function HomeContent() {
     const token = localStorage.getItem("adminToken");
     setIsAdmin(token === "safiya_admin_2026_token");
     getApi();
-  }, [category]); // Kategoriya o'zgarganda avtomatik ishlaydi
+  }, [category]);
 
   const handleDelete = async (id) => {
     if (!confirm("O'chirilsinmi?")) return;
@@ -76,7 +69,7 @@ function HomeContent() {
           headers: { "Content-Type": "application/json", Authorization: token },
           body: JSON.stringify({
             ...editingItem,
-            price: Number(editingItem.price), // Narxni raqamga aylantiramiz
+            price: Number(editingItem.price),
           }),
         },
       );
@@ -96,7 +89,7 @@ function HomeContent() {
 
       <header className="py-14 text-center">
         <h1 className="text-4xl font-black text-gray-900 tracking-tight italic uppercase">
-          Safiya <span className="text-blue-600">{category || "Menyusi"}</span>
+          Safiya <span className="text-blue-600">{category}</span>
         </h1>
       </header>
 
@@ -160,7 +153,7 @@ function HomeContent() {
         ) : (
           <div className="text-center py-20 text-gray-400">
             {category
-              ? "Bu kategoriyada mahsulot topilmadi."
+              ? `"${category}" kategoriyasida mahsulot topilmadi.`
               : "Iltimos, kategoriya tanlang."}
           </div>
         )}
