@@ -7,6 +7,7 @@ function HomeContent() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState(null);
+  const [orderItem, setOrderItem] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const searchParams = useSearchParams();
@@ -24,6 +25,7 @@ function HomeContent() {
         setData([]);
       }
     } catch (error) {
+      console.error("API olishda xato:", error);
       setData([]);
     } finally {
       setLoading(false);
@@ -36,53 +38,94 @@ function HomeContent() {
     getApi();
   }, [category]);
 
+  // --- O'CHIRISH (DELETE) ---
   const handleDelete = async (id) => {
     if (!confirm("O'chirilsinmi?")) return;
     const token = localStorage.getItem("adminToken");
     try {
       const res = await fetch(`${API_URL}/delete/${category}/${id}`, {
         method: "DELETE",
-        headers: { Authorization: token }, // Backend kutgan format
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         alert("Muvaffaqiyatli o'chirildi");
         getApi();
-      } else alert("Xatolik yuz berdi!");
+      } else alert("Xatolik: O'chirib bo'lmadi");
     } catch (err) {
-      alert("Xatolik!");
+      alert("Aloqa xatosi!");
     }
   };
 
+  // --- TAHRIRLASH (PUT) ---
   const handleUpdate = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("adminToken");
-    const productId = editingItem.id;
+
+    // Narxni raqam ekanligini tekshiramiz (NaN bo'lmasligi uchun)
+    const updatedData = {
+      ...editingItem,
+      price: Number(editingItem.price) || 0,
+    };
 
     try {
-      const res = await fetch(`${API_URL}/update/${category}/${productId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token, // Backend checkAdmin shuni tekshiradi
+      const res = await fetch(
+        `${API_URL}/update/${category}/${editingItem.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updatedData),
         },
-        body: JSON.stringify({
-          name: editingItem.name,
-          price: Number(editingItem.price),
-          img: editingItem.img,
-          description: editingItem.description,
-        }),
-      });
+      );
 
       if (res.ok) {
         setEditingItem(null);
         getApi();
         alert("Muvaffaqiyatli yangilandi!");
       } else {
-        const errData = await res.json();
-        alert(`Xatolik: ${errData.message || "Ruxsat berilmadi"}`);
+        const errorRes = await res.json();
+        alert("Xatolik: " + (errorRes.message || "Yangilab bo'lmadi"));
       }
     } catch (err) {
-      alert("Server bilan ulanishda xato!");
+      alert("Server bilan aloqa uzildi!");
+    }
+  };
+
+  // --- TELEGRAMGA BUYURTMA YUBORISH ---
+  const handleOrderSubmit = async (e) => {
+    e.preventDefault();
+
+    // Narx NaN bo'lib qolmasligi uchun himoya
+    const priceValue = orderItem.price ? Number(orderItem.price) : 0;
+
+    const formData = {
+      productName: orderItem.name || "Noma'lum",
+      price: priceValue,
+      customerName: e.target.customerName.value,
+      customerPhone: e.target.customerPhone.value,
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        alert("✅ Buyurtmangiz qabul qilindi! Botga xabar yuborildi.");
+        setOrderItem(null);
+      } else {
+        alert("❌ Xato: " + (result.message || "Botga yuborib bo'lmadi"));
+      }
+    } catch (err) {
+      alert(
+        "⚠️ Serverda muammo! Render uyg'onayotgan bo'lishi mumkin, 30 soniyadan keyin qayta urinib ko'ring.",
+      );
     }
   };
 
@@ -126,7 +169,7 @@ function HomeContent() {
                 <div className="h-52 w-full rounded-[35px] overflow-hidden mb-5 bg-gray-100">
                   <img
                     src={item.img || "https://via.placeholder.com/300"}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
                     alt={item.name}
                   />
                 </div>
@@ -138,9 +181,12 @@ function HomeContent() {
                     {(Number(item.price) || 0).toLocaleString()} so'm
                   </p>
                   <p className="text-gray-400 text-xs line-clamp-2 mb-6">
-                    {item.description || "Tavsif yo'q."}
+                    {item.description || "Tavsif mavjud emas."}
                   </p>
-                  <button className="w-full bg-blue-600 text-white py-4 rounded-[22px] font-bold">
+                  <button
+                    onClick={() => setOrderItem(item)}
+                    className="w-full bg-blue-600 text-white py-4 rounded-[22px] font-bold hover:bg-blue-700 transition-colors"
+                  >
                     Sotib olish
                   </button>
                 </div>
@@ -154,11 +200,12 @@ function HomeContent() {
         )}
       </main>
 
+      {/* --- TAHRIRLASH MODAL --- */}
       {editingItem && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <form
             onSubmit={handleUpdate}
-            className="bg-white p-10 rounded-[45px] w-full max-w-md space-y-4"
+            className="bg-white p-10 rounded-[45px] w-full max-w-md space-y-4 shadow-2xl"
           >
             <h2 className="text-2xl font-black mb-4">Tahrirlash</h2>
             <input
@@ -200,7 +247,7 @@ function HomeContent() {
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold"
+                className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700"
               >
                 Saqlash
               </button>
@@ -210,6 +257,56 @@ function HomeContent() {
                 className="flex-1 bg-gray-100 py-4 rounded-2xl font-bold"
               >
                 Bekor qilish
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* --- SOTIB OLISH (ORDER) MODAL --- */}
+      {orderItem && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[110] p-4">
+          <form
+            onSubmit={handleOrderSubmit}
+            className="bg-white p-10 rounded-[45px] w-full max-w-md space-y-4 shadow-2xl"
+          >
+            <h2 className="text-2xl font-black text-gray-900">
+              Buyurtma berish
+            </h2>
+            <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+              <p className="font-bold text-blue-800 text-lg">
+                {orderItem.name}
+              </p>
+              <p className="text-sm text-blue-600 font-semibold">
+                Narxi: {(Number(orderItem.price) || 0).toLocaleString()} so'm
+              </p>
+            </div>
+            <input
+              name="customerName"
+              className="w-full border p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ismingizni kiriting"
+              required
+            />
+            <input
+              name="customerPhone"
+              type="tel"
+              className="w-full border p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Telefon raqamingiz"
+              required
+            />
+            <div className="flex gap-3 pt-4">
+              <button
+                type="submit"
+                className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-bold hover:bg-green-700 transition-all"
+              >
+                Tasdiqlash
+              </button>
+              <button
+                type="button"
+                onClick={() => setOrderItem(null)}
+                className="flex-1 bg-gray-100 py-4 rounded-2xl font-bold"
+              >
+                Yopish
               </button>
             </div>
           </form>
