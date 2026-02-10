@@ -5,7 +5,7 @@ import Navbar from "../nav/navbar";
 
 export default function AddProductPage() {
   const router = useRouter();
-  const API_URL = "http://localhost:5000";
+  const API_URL = "https://safiyabekend.onrender.com";
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);

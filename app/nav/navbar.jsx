@@ -17,7 +17,7 @@ function NavbarLinks() {
 
   // Standart holatda "foods"ni tanlangan deb hisoblaymiz
   const currentCategory = searchParams.get("category") || "foods";
-  const API_URL = "http://localhost:5000";
+  const API_URL = "https://safiyabekend.onrender.com";
 
   const fetchCategories = async () => {
     try {

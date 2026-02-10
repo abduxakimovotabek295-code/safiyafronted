@@ -7,7 +7,7 @@ export default function AddCategoryPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const API_URL = "http://localhost:5000";
+  const API_URL = "https://safiyabekend.onrender.com";
 
   const handleSubmit = async (e) => {
     e.preventDefault();

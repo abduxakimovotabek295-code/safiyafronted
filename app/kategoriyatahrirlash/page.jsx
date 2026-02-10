@@ -8,7 +8,7 @@ function EditCategoryContent() {
   const catName = searchParams.get("name");
   const [newName, setNewName] = useState(catName || "");
   const [loading, setLoading] = useState(false);
-  const API_URL = "http://localhost:5000";
+  const API_URL = "https://safiyabekend.onrender.com";
 
   // Faqat admin kira olishini tekshirish
   useEffect(() => {

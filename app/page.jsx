@@ -10,14 +10,10 @@ function HomeContent() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   const searchParams = useSearchParams();
-
-  // URL'dan kategoriya olish, agar bo'lmasa standart "foods" ni yuklash
   const category = searchParams.get("category") || "foods";
-
-  const API_URL = "http://localhost:5000";
+  const API_URL = "https://safiyabekend.onrender.com";
 
   const getApi = async () => {
-    // Endi "if (!category)" sharti kerak emas, chunki u doim kamida "foods" bo'ladi
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/products/${category}`);
@@ -28,7 +24,6 @@ function HomeContent() {
         setData([]);
       }
     } catch (error) {
-      console.error("Yuklashda xato:", error);
       setData([]);
     } finally {
       setLoading(false);
@@ -47,12 +42,12 @@ function HomeContent() {
     try {
       const res = await fetch(`${API_URL}/delete/${category}/${id}`, {
         method: "DELETE",
-        headers: { Authorization: token },
+        headers: { Authorization: token }, // Backend kutgan format
       });
       if (res.ok) {
         alert("Muvaffaqiyatli o'chirildi");
         getApi();
-      } else alert("Ruxsat yo'q yoki xatolik!");
+      } else alert("Xatolik yuz berdi!");
     } catch (err) {
       alert("Xatolik!");
     }
@@ -61,34 +56,41 @@ function HomeContent() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("adminToken");
+    const productId = editingItem.id;
+
     try {
-      const res = await fetch(
-        `${API_URL}/update/${category}/${editingItem.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: token },
-          body: JSON.stringify({
-            ...editingItem,
-            price: Number(editingItem.price),
-          }),
+      const res = await fetch(`${API_URL}/update/${category}/${productId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token, // Backend checkAdmin shuni tekshiradi
         },
-      );
+        body: JSON.stringify({
+          name: editingItem.name,
+          price: Number(editingItem.price),
+          img: editingItem.img,
+          description: editingItem.description,
+        }),
+      });
+
       if (res.ok) {
         setEditingItem(null);
         getApi();
-        alert("Yangilandi!");
-      } else alert("Xatolik!");
+        alert("Muvaffaqiyatli yangilandi!");
+      } else {
+        const errData = await res.json();
+        alert(`Xatolik: ${errData.message || "Ruxsat berilmadi"}`);
+      }
     } catch (err) {
-      alert("Server xatosi!");
+      alert("Server bilan ulanishda xato!");
     }
   };
 
   return (
     <div className="bg-slate-50 min-h-screen">
       <Navbar />
-
       <header className="py-14 text-center">
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight italic uppercase">
+        <h1 className="text-4xl font-black text-gray-900 italic uppercase">
           Safiya <span className="text-blue-600">{category}</span>
         </h1>
       </header>
@@ -103,47 +105,42 @@ function HomeContent() {
             {data.map((item) => (
               <div
                 key={item.id}
-                className="group bg-white rounded-[45px] p-5 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 relative"
+                className="group bg-white rounded-[45px] p-5 shadow-sm hover:shadow-2xl transition-all border relative"
               >
                 {isAdmin && (
                   <div className="absolute top-6 right-6 flex gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => setEditingItem(item)}
-                      className="bg-white/90 p-2.5 rounded-2xl shadow-xl text-sm border hover:scale-110 transition-transform"
+                      className="bg-white/90 p-2.5 rounded-2xl shadow-xl border hover:scale-110 transition-transform"
                     >
                       ✏️
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="bg-white/90 p-2.5 rounded-2xl shadow-xl text-sm border hover:scale-110 transition-transform text-red-500"
+                      className="bg-white/90 p-2.5 rounded-2xl shadow-xl border hover:scale-110 transition-transform text-red-500"
                     >
                       🗑️
                     </button>
                   </div>
                 )}
-
                 <div className="h-52 w-full rounded-[35px] overflow-hidden mb-5 bg-gray-100">
                   <img
                     src={item.img || "https://via.placeholder.com/300"}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-cover"
                     alt={item.name}
-                    onError={(e) => {
-                      e.target.src = "https://via.placeholder.com/300";
-                    }}
                   />
                 </div>
-
                 <div className="px-2">
                   <h2 className="text-xl font-bold text-gray-800 mb-1 truncate">
                     {item.name}
                   </h2>
                   <p className="text-blue-600 font-black text-lg mb-2">
-                    {Number(item.price).toLocaleString()} so'm
+                    {(Number(item.price) || 0).toLocaleString()} so'm
                   </p>
-                  <p className="text-gray-400 text-xs line-clamp-2 mb-6 min-h-[32px]">
-                    {item.description || "Tavsif mavjud emas."}
+                  <p className="text-gray-400 text-xs line-clamp-2 mb-6">
+                    {item.description || "Tavsif yo'q."}
                   </p>
-                  <button className="w-full bg-blue-600 text-white py-4 rounded-[22px] font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 active:scale-95 transition-all uppercase text-xs tracking-wider">
+                  <button className="w-full bg-blue-600 text-white py-4 rounded-[22px] font-bold">
                     Sotib olish
                   </button>
                 </div>
@@ -152,19 +149,16 @@ function HomeContent() {
           </div>
         ) : (
           <div className="text-center py-20 text-gray-400">
-            {category
-              ? `"${category}" kategoriyasida mahsulot topilmadi.`
-              : "Iltimos, kategoriya tanlang."}
+            Mahsulot topilmadi.
           </div>
         )}
       </main>
 
-      {/* TAHRIRLASH MODALI */}
       {editingItem && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <form
             onSubmit={handleUpdate}
-            className="bg-white p-10 rounded-[45px] w-full max-w-md space-y-4 shadow-2xl"
+            className="bg-white p-10 rounded-[45px] w-full max-w-md space-y-4"
           >
             <h2 className="text-2xl font-black mb-4">Tahrirlash</h2>
             <input
@@ -174,6 +168,7 @@ function HomeContent() {
                 setEditingItem({ ...editingItem, name: e.target.value })
               }
               placeholder="Nomi"
+              required
             />
             <input
               className="w-full border p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500"
@@ -183,6 +178,7 @@ function HomeContent() {
                 setEditingItem({ ...editingItem, price: e.target.value })
               }
               placeholder="Narxi"
+              required
             />
             <input
               className="w-full border p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500"
